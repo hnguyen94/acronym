@@ -1,8 +1,24 @@
 import Vapor
 import Fluent
 
-/// Controls basic CRUD operations on `Todo`s.
-final class AcronymController {
+// MARK: - Routes
+final class AcronymController: RouteCollection {
+    func boot(router: Router) throws {
+        let acronymRoutes = router.grouped("api", "acronyms")
+
+        acronymRoutes.get(use: index)
+        acronymRoutes.get(Acronym.parameter, use: show)
+        acronymRoutes.post(use: create)
+        acronymRoutes.put(Acronym.parameter, use: update)
+        acronymRoutes.delete(Acronym.parameter, use: delete)
+        acronymRoutes.get("search", use: search)
+        acronymRoutes.get("first", use: first)
+        acronymRoutes.get("sort", use: sort)
+    }
+}
+
+// MARK: - CRUD
+extension AcronymController {
     /// Returns a list of all `Todo`s.
     func index(_ req: Request) throws -> Future<[Acronym]> {
         Acronym.query(on: req).all()
@@ -34,5 +50,28 @@ final class AcronymController {
         try request.parameters.next(Acronym.self)
             .delete(on: request)
             .transform(to: .ok)
+    }
+
+    func search(_ request: Request) throws -> Future<[Acronym]> {
+        guard let searchTerm = request.query[String.self, at: "term"] else {
+            throw Abort(.badRequest)
+        }
+
+        return Acronym.query(on: request).group(.or) { or in
+            or.filter(\.short == searchTerm)
+            or.filter(\.long == searchTerm)
+        }.all()
+    }
+
+    func first(_ request: Request) throws -> Future<Acronym> {
+        Acronym.query(on: request)
+            .first()
+            .unwrap(or: Abort(.notFound))
+    }
+
+    func sort(_ request: Request) throws -> Future<[Acronym]> {
+        Acronym.query(on: request)
+            .sort(\.short, .ascending)
+            .all()
     }
 }
