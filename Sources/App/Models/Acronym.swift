@@ -12,18 +12,20 @@ final class Acronym: Content {
     var id: Int?
     var short: String
     var long: String
+    var userID: User.ID
 
-    init(short: String, long: String) {
+    init(short: String, long: String, userID: User.ID) {
         self.short = short
         self.long = long
+        self.userID = userID
     }
 }
 
-//extension Acronym: Model {
-//    typealias Database = SQLiteDatabase
-//    typealias ID = Int
-//    public static var idKey: IDKey = \.id
-//}
+extension Acronym {
+    var user: Parent<Acronym, User> {
+        parent(\.userID)
+    }
+}
 
 extension Acronym: SQLiteModel {}
 extension Acronym: Migration {}

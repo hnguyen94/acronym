@@ -15,13 +15,6 @@ public func routes(_ router: Router) throws {
 
     // MARK: - Acronym
 
-    let acronymController = AcronymController()
-    try router.register(collection: acronymController)
-    // MARK: Path
-//    router.post(api, acronyms, use: acronymController.create)
-//    router.put(api, acronyms, Acronym.parameter, use: acronymController.update)
-//    router.delete(api, acronyms, Acronym.parameter, use: acronymController.delete)
-//    router.get(api, acronyms, "search", use: acronymController.search)
-//    router.get(api, acronyms, "first", use: acronymController.first)
-//    router.get(api, acronyms, "sorted", use: acronymController.sort)
+    try router.register(collection: AcronymsController())
+    try router.register(collection: UsersController())
 }
