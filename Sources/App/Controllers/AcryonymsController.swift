@@ -15,6 +15,9 @@ final class AcronymsController: RouteCollection {
         acronymRoutes.get("first", use: first)
         acronymRoutes.get("sort", use: sort)
         acronymRoutes.get(Acronym.parameter, "user", use: user)
+        acronymRoutes.post(Acronym.parameter, "categories", Category.parameter, use: addCategories)
+        acronymRoutes.delete(Acronym.parameter, "categories", Category.parameter, use: removeCategories)
+        acronymRoutes.get(Acronym.parameter, "categories", use: categories)
     }
 }
 
@@ -79,6 +82,33 @@ extension AcronymsController {
             .parameters.next(Acronym.self)
             .flatMap(to: User.self) { acronym in
                 acronym.user.get(on: request)
+        }
+    }
+
+    func addCategories(_ request: Request) throws -> Future<HTTPStatus> {
+        try flatMap(to: HTTPStatus.self,
+                    request.parameters.next(Acronym.self),
+                    request.parameters.next(Category.self), { acronym, category in
+                        acronym.categories
+                            .attach(category, on: request)
+                            .transform(to: .created)
+        })
+    }
+
+    func removeCategories(_ request: Request) throws -> Future<HTTPStatus> {
+        try flatMap(to: HTTPStatus.self,
+                    request.parameters.next(Acronym.self),
+                    request.parameters.next(Category.self), { acronym, category in
+                        acronym.categories
+                            .detach(category, on: request)
+                            .transform(to: .ok)
+        })
+    }
+
+    func categories(_ request: Request) throws -> Future<[Category]> {
+        try request.parameters.next(Acronym.self)
+            .flatMap(to: [Category].self) { acronym in
+                try acronym.categories.query(on: request).all()
         }
     }
 }
